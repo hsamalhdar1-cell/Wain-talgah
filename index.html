@@ -363,7 +363,12 @@ function leaveAdmin(){$('admin').classList.add('hide');document.querySelector('.
 async function checkAdmin(){if(!SB){ADM=false;return false}var r=await SB.from('admins').select('user_id').limit(1);ADM=!r.error&&!!r.data&&r.data.length>0;return ADM}
 async function route(){if(location.hash==='#admin'){await checkAdmin();showAdmin()}}
 function addDays(s,n){var b=(s.paid_until&&new Date(s.paid_until)>new Date())?new Date(s.paid_until):new Date();b.setDate(b.getDate()+n);return b.toISOString()}
-async function admUpd(s,patch){var x=await SB.from('shops').update(patch).eq('id',s.id);if(x.error){toast('تعذر التنفيذ: '+x.error.message);return}await load();lastSig='';drawAdmin()}
+async function admUpd(s,patch){
+  var x=await SB.from('shops').update(patch).eq('id',s.id).select('id');
+  if(x.error){alert('تعذر التنفيذ: '+x.error.message);return}
+  if(!x.data||!x.data.length){alert('ما تغيّر شي في المحل. السبب غالباً إن حسابك مو مسجّل كإدارة في هذا المشروع (جدول admins)، أو الصلاحيات ما تسمح.');return}
+  await load();lastSig='';drawAdmin();toast('تم ✅');
+}
 async function admDel(s){if(!confirm('حذف محل "'+s.ShopName+'" نهائياً مع عروضه؟'))return;var x=await SB.from('shops').delete().eq('id',s.id);if(x.error){toast('تعذر الحذف');return}await load();drawAdmin()}
 async function admOut(){await SB.auth.signOut();var r=await SB.auth.signInAnonymously();if(!r.error)UID=r.data.user.id;ADM=false;SHOPS.length=0;await load();drawAdmin()}
 function drawAdmin(){
