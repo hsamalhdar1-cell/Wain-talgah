@@ -416,7 +416,7 @@ function drawAdmin(){
 }
 
 /* الربط مع Supabase */
-var CFG={url:'https://pfswzgqkvwljoghnlyaq.supabase.co',key:'sb_publishable_lN2KUh34ujqC_eYl0vWmlg_-Xqqo0Z_'};
+var CFG={url:'https://gqneciyfwpwyjmyytggg.supabase.co',key:'sb_publishable_UxJwyk5J2ZEq5JmsCAMDdQ_r-_qnOHs'};
 var SB=null,UID=null,DB=null,canWrite=true,lastSig='';
 var ADMIN_WA='0940510551'; // رقم واتساب الإدارة للموافقة على المحلات
 function loadJS(u){return new Promise(function(res){var e=document.createElement('script');e.src=u;e.onload=function(){res(true)};e.onerror=function(){res(false)};document.head.appendChild(e)})}
@@ -490,11 +490,11 @@ async function connect(){
   var ok=await withTO(ensureLib(),25000,'تأخر').catch(function(){return false});
   if(!ok){banner('⚠️ تعذر تحميل مكتبة الاتصال (النت ضعيف أو محجوب). جرّب شبكة ثانية ثم حدّث الصفحة.');return}
   try{
-    SB=supabase.createClient(CFG.url,CFG.key,{auth:{storageKey:'wain-talqah-auth',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,lock:async function(n,t,fn){return await fn()}}});
+    SB=supabase.createClient(CFG.url,CFG.key,{auth:{storageKey:'wain-talqah-auth-2',persistSession:true,autoRefreshToken:true,detectSessionInUrl:false,lock:async function(n,t,fn){return await fn()}}});
     banner('⏳ 2/3 تسجيل الدخول…');
     try{await connect()}catch(e1){
       try{await withTO(SB.auth.signOut(),4000,'x')}catch(x){}
-      try{localStorage.removeItem('wain-talqah-auth')}catch(x){}
+      try{localStorage.removeItem('wain-talqah-auth-2')}catch(x){}
       await connect();
     }
     banner('✅ متصل');await load();setInterval(load,6000);await checkAdmin();route();window.addEventListener('hashchange',route);
