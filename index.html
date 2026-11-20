@@ -438,7 +438,12 @@ async function load(){
   if(!SB)return;
   var q=await Promise.all([SB.from('requests').select('*').order('id',{ascending:false}).limit(200),SB.from('shops').select('*'),SB.from('offers').select('*'),SB.from('request_contacts').select('*'),SB.from('settings').select('*')]);
   var nmz=['requests','shops','offers'],bad=[0,1,2].filter(function(i){return q[i].error});
-  if(bad.length){banner('⚠️ مشكلة في الاتصال — '+bad.map(function(i){return nmz[i]+': '+(q[i].error.message||q[i].error.code||'خطأ')}).join(' | '));return}
+  if(bad.length){
+    var ex='';
+    try{var ss=(await SB.auth.getSession()).data.session;var rl='بدون جلسة';
+      if(ss&&ss.access_token){rl=JSON.parse(atob(ss.access_token.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))).role||'?'}
+      ex='\n[المشروع: '+CFG.url.split('//')[1].split('.')[0]+' · الدور: '+rl+']'}catch(e2){ex='\n[تعذر قراءة الجلسة]'}
+    banner('⚠️ مشكلة في الاتصال — '+bad.map(function(i){return nmz[i]+': '+(q[i].error.message||q[i].error.code||'خطأ')}).join(' | ')+ex);return}
   (q[4].data||[]).forEach(function(x){if(x.key==='sub_price'&&Number(x.value)>=0)PRICE=Number(x.value)});
   var ph={},nm={};(q[3].data||[]).forEach(function(x){ph[x.request_id]=x.phone});
   SHOPS.length=0;q[1].data.forEach(function(s){nm[s.id]=s.shop_name;SHOPS.push({id:s.id,ShopName:s.shop_name,Category:s.category,Phone:s.phone,City:s.city,owner:s.owner,approved:s.approved,paid_until:s.paid_until,lat:s.lat,lng:s.lng,address:s.address})});
