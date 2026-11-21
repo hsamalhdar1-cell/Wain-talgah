@@ -1,3 +1,4 @@
+<!-- وين تلقاه؟ — النسخة النهائية v1.1 (نوفمبر 2026) — ملف التطبيق الكامل، ارفعه على GitHub مع باقي ملفات مجلد site -->
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -55,6 +56,14 @@ th{background:var(--navy);color:var(--gold)}
 .chip.on{background:var(--gold);color:var(--navy);border-color:var(--gold)}
 .seg{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
 .badge.red{background:#d33;color:#fff}.badge.tl{background:var(--teal);color:#fff}
+.agree{display:flex;gap:8px;align-items:flex-start;font-size:13px;font-weight:400;margin:12px 0 0}
+.agree input{width:auto;margin:4px 0 0;flex:none}
+.agree a{color:var(--teal-t)}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:20;display:flex;align-items:center;justify-content:center;padding:16px}
+.ov .card{width:100%;max-width:420px;margin:0}
+.foot{text-align:center;margin:0 0 96px;padding:0 16px;font-size:13px}
+.foot a{color:inherit}
+.foot .seg{justify-content:center}
 .hide{display:none}
 .toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:var(--navy);color:#fff;border:1px solid var(--gold);padding:10px 18px;border-radius:12px;font-weight:700;z-index:9;font-size:14px;max-width:90vw;text-align:center}
 @media (min-width:760px){
@@ -99,12 +108,14 @@ th{background:var(--navy);color:var(--gold)}
     <div class="thumbs" id="prev"></div>
     <label>المدينة</label>
     <select id="city"></select>
+    <label class="agree"><input type="checkbox" id="agree1"><span>أوافق على <a href="terms.html" target="_blank">شروط الاستخدام</a> و<a href="privacy.html" target="_blank">سياسة الخصوصية</a></span></label>
     <button class="btn" id="send">ابعث الطلب لكل المحلات القريبة 🚀</button>
   </div>
   <div id="res" class="hide">
     <div class="status" id="stat"></div>
     <div id="offers"></div>
     <button class="btn alt" id="back">رجوع للطلبات</button>
+    <button class="btn alt" id="delreq">🗑 حذف هذا الطلب</button>
   </div>
 </section>
 
@@ -125,6 +136,7 @@ th{background:var(--navy);color:var(--gold)}
     <label>العنوان / أقرب معلم</label><input id="saddr" placeholder="مثال: شارع الجمهورية، قرب مسجد النور">
     <button class="btn alt" id="sgps" type="button">📍 حدد موقع المحل الحالي (GPS)</button>
     <div class="mut" id="sgpsmsg">اختياري، لكنه يساعد الزبون يوصل لمحلك</div>
+    <label class="agree"><input type="checkbox" id="agree2"><span>أوافق على <a href="terms.html" target="_blank">شروط الاستخدام</a> و<a href="privacy.html" target="_blank">سياسة الخصوصية</a></span></label>
     <button class="btn" id="regbtn">سجّل محلي ✅</button>
   </div>
   <div id="inwrap" class="hide">
@@ -137,7 +149,11 @@ th{background:var(--navy);color:var(--gold)}
 <section id="admin" class="hide"><div id="admbox"></div></section>
 </div>
 
-<p class="mut" style="text-align:center;margin:0 0 90px"><a href="privacy.html" style="color:inherit">سياسة الخصوصية</a></p>
+<div class="foot mut">
+  <div>تواصل مع الإدارة</div>
+  <div class="seg"><a class="btn sm alt" id="fwa" href="#" target="_blank" rel="noopener">💬 واتساب</a><a class="btn sm alt" id="fem" href="mailto:waintalgah@gmail.com">✉️ waintalgah@gmail.com</a></div>
+  <div><a href="privacy.html">سياسة الخصوصية</a> · <a href="terms.html">شروط الاستخدام</a></div>
+</div>
 <nav class="nav">
   <button id="t1" class="on">🛒 الطلبات</button>
   <button id="t2">📖 المحلات</button><button id="t3">🏪 تاجر</button>
@@ -206,6 +222,44 @@ function getGPS(cb,msg){
   navigator.geolocation.getCurrentPosition(function(p){cb(+p.coords.latitude.toFixed(6),+p.coords.longitude.toFixed(6));msg.textContent='✅ تم تحديد إحداثيات الموقع'},function(){msg.textContent='تعذر تحديد الموقع، اسمح للمتصفح بالوصول للموقع وجرّب مرة ثانية'},{enableHighAccuracy:true,timeout:15000});
 }
 
+/* الإبلاغ وحذف البيانات */
+function askReason(title,cb){
+  var ov=el('div','ov'),c=el('div','card');
+  c.appendChild(el('b','',title));
+  var sel=el('select');sel.style.marginTop='10px';
+  ['محتوى مسيء أو غير لائق','احتيال أو نصب','سلعة ممنوعة أو غير قانونية','معلومات مزيفة','إزعاج أو سبام','أخرى'].forEach(function(x){sel.appendChild(el('option','',x))});
+  var tx=el('input');tx.placeholder='تفاصيل إضافية (اختياري)';tx.style.marginTop='8px';
+  var row=el('div','row');row.style.marginTop='10px';
+  var ok=el('button','btn sm','إرسال البلاغ'),no=el('button','btn sm alt','إلغاء');
+  ok.onclick=function(){var r=sel.value+(tx.value.trim()?' — '+tx.value.trim():'');ov.remove();cb(r)};
+  no.onclick=function(){ov.remove()};
+  row.appendChild(ok);row.appendChild(no);c.appendChild(sel);c.appendChild(tx);c.appendChild(row);ov.appendChild(c);document.body.appendChild(ov);
+}
+function reportIt(type,id,label){
+  askReason('🚩 إبلاغ عن '+label,async function(reason){
+    if(!SB){toast('تم إرسال البلاغ ✅');return}
+    var x=await SB.from('reports').insert({target_type:type,target_id:id,reason:reason});
+    if(x.error){alert('تعذر إرسال البلاغ: '+x.error.message);return}
+    toast('تم إرسال البلاغ ✅ شكراً لك، سنراجعه');
+  });
+}
+async function delMyRequests(){
+  if(!confirm('حذف كل طلباتك نهائياً مع العروض عليها؟'))return;
+  if(SB){var x=await SB.from('requests').delete().eq('owner',UID);if(x.error){alert('تعذر الحذف: '+x.error.message);return}await load()}else{REQ.length=0}
+  toast('تم حذف طلباتك ✅');drawList();
+}
+async function delOneRequest(){
+  if(!curId||!confirm('حذف هذا الطلب نهائياً؟'))return;
+  if(SB){var x=await SB.from('requests').delete().eq('id',curId);if(x.error){alert('تعذر الحذف: '+x.error.message);return}await load()}
+  else{REQ.splice(0,REQ.length,...REQ.filter(function(r){return r.ID!==curId}))}
+  toast('تم حذف الطلب ✅');showView('list');
+}
+async function delMyShop(){
+  if(!myShop||!confirm('حذف محلك وكل عروضك نهائياً؟'))return;
+  if(SB&&typeof myShop.id==='number'){var x=await SB.from('shops').delete().eq('id',myShop.id);if(x.error){alert('تعذر الحذف: '+x.error.message);return}}
+  myShop=null;if(SB)await load();toast('تم حذف محلك ✅');drawInbox();
+}
+
 /* الزبون */
 function ensureShop(n,c,city){
   if(!SHOPS.some(function(s){return s.ShopName===n&&s.City===city&&s.Category===c}))
@@ -227,7 +281,8 @@ function drawOffers(){
     b1.disabled=r.Status==='تم التوفير';
     b1.onclick=function(){setStatus(r,'تم التوفير');toast('تم اختيار '+o.ShopName+' ✅ كلّمه واتساب لإتمام الصفقة');drawOffers()};
     b2.href=waLink(phoneOf(o.ShopId),'السلام عليكم، أنا '+r.CustomerName+'، بخصوص طلبي: '+r.ItemRequested+' (طلب رقم '+r.ID+') عبر تطبيق وين تلقاه');b2.target='_blank';b2.rel='noopener';
-    w.appendChild(b1);w.appendChild(b2);d.appendChild(w);box.appendChild(d);
+    var rb=el('button','btn sm alt','🚩 إبلاغ');rb.onclick=function(){reportIt('shop',o.ShopId,'المحل '+o.ShopName)};
+    w.appendChild(b1);w.appendChild(b2);w.appendChild(rb);d.appendChild(w);box.appendChild(d);
   });
   var n=SHOPS.filter(function(x){return x.City===r.City&&x.Category===r.cat&&isActive(x)}).length;
   $('stat').textContent=(r.Status==='تم التوفير'?'✅ تم التوفير · ':'')+'طلب رقم '+r.ID+' · وصل لـ '+n+' محلات · العروض: '+s.length;
@@ -235,6 +290,7 @@ function drawOffers(){
 $('send').onclick=function(){
   var n=$('cname').value.trim(),t=$('req').value.trim(),p=$('cphone').value.replace(/\D/g,'');
   if(!n||!t||p.length<9){toast('اكتب اسمك ورقم هاتفك وطلبك');return}
+  if(!$('agree1').checked){toast('لازم توافق على شروط الاستخدام');return}
   var ID=Date.now()%1000000,r={ID:ID,id:'r'+ID,CustomerName:n,phone:p,ItemRequested:t,City:$('city').value,Status:'معلق',cat:cat,imgs:imgs.slice()};
   if(JSON.stringify(r).length>230000){toast('الصور كبيرة، قلل عددها');return}
   if(DB&&!canWrite){toast('صلاحيتك قراءة فقط');return}
@@ -250,6 +306,7 @@ function drawList(){
   var c=$('fcity').value,box=$('rl');box.innerHTML='';
   var l=REQ.filter(function(r){return (!SB||r.owner===UID)&&(!c||r.City===c)});
   if(!l.length)box.appendChild(el('div','card mut','ما عندك طلبات بعد. اضغط + وأضف أول طلب.'));
+  else{var dl=el('button','btn sm alt','🗑 حذف كل طلباتي');dl.style.marginBottom='12px';dl.onclick=delMyRequests;box.appendChild(dl)}
   l.forEach(function(r){
     var d=el('div','card'),h=el('div','row'),st=el('span','badge',r.Status);
     if(r.Status==='تم التوفير'){st.style.background='var(--teal)';st.style.color='#fff'}
@@ -268,6 +325,7 @@ function drawDir(){
     var d=el('div','card'),h=el('div','row');
     h.appendChild(el('b','',s.ShopName));h.appendChild(el('span','badge',s.Category));d.appendChild(h);
     d.appendChild(el('div','mut','📍 '+s.City+' · 📞 '+s.Phone));addLoc(d,s);
+    var rb=el('button','btn sm alt','🚩 إبلاغ عن المحل');rb.style.marginTop='8px';rb.onclick=function(){reportIt('shop',s.id,'المحل '+s.ShopName)};d.appendChild(rb);
     box.appendChild(d);
   });
 }
@@ -281,6 +339,7 @@ $('sgps').onclick=function(){getGPS(function(a,b){GPS={lat:a,lng:b}},$('sgpsmsg'
 $('regbtn').onclick=function(){
   var n=$('sn').value.trim(),p=$('sph').value.trim();
   if(!n||!p){toast('اكتب اسم المحل ورقم الهاتف');return}
+  if(!$('agree2').checked){toast('لازم توافق على شروط الاستخدام');return}
   myShop={ShopName:n,Category:$('scat').value,Phone:p,City:$('scity').value,address:$('saddr').value.trim(),lat:GPS?GPS.lat:null,lng:GPS?GPS.lng:null};
   myShop.id='tmp';myShop.approved=SB?false:true;put('shops',{id:'tmp',ShopName:n,Category:myShop.Category,Phone:p,City:myShop.City,address:myShop.address,lat:myShop.lat,lng:myShop.lng});
   toast('تم تسجيل محلك ✅');drawInbox();
@@ -298,6 +357,8 @@ function drawSub(){
   sv.onclick=function(){saveLoc(ad.value.trim(),loc)};
   var w=el('div','row');w.style.marginTop='8px';w.appendChild(g);w.appendChild(sv);c.appendChild(w);c.appendChild(msg);
   b.appendChild(c);
+  var dc=el('div','card');dc.appendChild(el('b','','🗑 حذف المحل'));dc.appendChild(el('div','mut','يحذف محلك وكل عروضك نهائياً من التطبيق.'));
+  var dbn=el('button','btn sm alt','حذف محلي وبياناته');dbn.style.marginTop='8px';dbn.onclick=delMyShop;dc.appendChild(dbn);b.appendChild(dc);
 }
 async function saveLoc(addr,loc){
   myShop.address=addr;myShop.lat=loc.lat;myShop.lng=loc.lng;
@@ -321,7 +382,7 @@ function drawInbox(){
   if(!list.length)box.appendChild(el('div','card mut','ما فيه طلبات معلقة في مدينتك وتخصصك الحين.'));
   list.forEach(function(r){
     var d=el('div','card');
-    d.appendChild(el('div','mut','#'+r.ID+' · '+r.CustomerName+' · '+r.City));
+    var mr=el('div','row');mr.appendChild(el('div','mut','#'+r.ID+' · '+r.CustomerName+' · '+r.City));var rb=el('button','btn sm alt','🚩 إبلاغ');rb.onclick=function(){reportIt('request',r.ID,'الطلب #'+r.ID)};mr.appendChild(rb);d.appendChild(mr);
     var b=el('div','',r.ItemRequested);b.style.cssText='font-weight:700;margin:4px 0 8px';d.appendChild(b);
     if(r.imgs.length){
       d.appendChild(el('div','mut','📷 '+r.imgs.length+' صور مرفقة (اضغط للتكبير)'));
@@ -355,7 +416,7 @@ var oc=el('option','','كل التخصصات');oc.value='';$('dcat').appendChild
 drawCats();drawThumbs();drawList();
 
 /* لوحة الإدارة */
-var ADM=false,admFilter='all';
+var ADM=false,admFilter='all',REPORTS=[];
 function shopState(s){if(!s.approved)return s.paid_until?'suspended':'pending';return(s.paid_until&&new Date(s.paid_until)>new Date())?'active':'expired'}
 var STL={pending:'⏳ قيد المراجعة',active:'✅ نشط',expired:'⌛ منتهي',suspended:'⛔ موقوف'};
 function showAdmin(){['cust','dir','shop'].forEach(function(x){$(x).classList.add('hide')});$('admin').classList.remove('hide');document.querySelector('.nav').classList.add('hide');drawAdmin()}
@@ -371,6 +432,27 @@ async function admUpd(s,patch){
 }
 async function admDel(s){if(!confirm('حذف محل "'+s.ShopName+'" نهائياً مع عروضه؟'))return;var x=await SB.from('shops').delete().eq('id',s.id);if(x.error){toast('تعذر الحذف');return}await load();drawAdmin()}
 async function admOut(){await SB.auth.signOut();var r=await SB.auth.signInAnonymously();if(!r.error)UID=r.data.user.id;ADM=false;SHOPS.length=0;await load();drawAdmin()}
+async function repDone(id){var x=await SB.from('reports').update({status:'done'}).eq('id',id);if(x.error){alert('تعذر التنفيذ: '+x.error.message);return}await load();drawAdmin()}
+async function admDelReq(id){if(!confirm('حذف هذا الطلب نهائياً؟'))return;var x=await SB.from('requests').delete().eq('id',id);if(x.error){alert('تعذر الحذف: '+x.error.message);return}await load()}
+function drawReports(box){
+  var open=REPORTS.filter(function(r){return r.status==='new'});
+  var c=el('div','card');c.appendChild(el('b','','🚩 البلاغات الجديدة ('+open.length+')'));
+  if(!open.length)c.appendChild(el('div','mut','ما فيه بلاغات جديدة.'));
+  open.forEach(function(r){
+    var d=el('div');d.style.cssText='border-top:1px solid var(--bd);margin-top:10px;padding-top:10px';
+    var T={request:'طلب',shop:'محل',offer:'عرض'}[r.target_type]||r.target_type,name='',sh=null,rq=null;
+    if(r.target_type==='shop'){sh=SHOPS.filter(function(x){return x.id===r.target_id})[0];name=sh?sh.ShopName:'(محذوف)'}
+    if(r.target_type==='request'){rq=REQ.filter(function(x){return x.ID===r.target_id})[0];name=rq?rq.ItemRequested:'(محذوف)'}
+    d.appendChild(el('div','',T+' #'+r.target_id+': '+name));
+    d.appendChild(el('div','mut','السبب: '+r.reason+' · '+fmtDate(r.created_at)));
+    var w=el('div','seg');
+    if(sh){var z=el('button','btn sm alt','⛔ إيقاف المحل');z.onclick=async function(){await admUpd(sh,{approved:false});await repDone(r.id)};w.appendChild(z)}
+    if(rq){var x=el('button','btn sm alt','🗑 حذف الطلب');x.onclick=async function(){await admDelReq(r.target_id);await repDone(r.id)};w.appendChild(x)}
+    var ok=el('button','btn sm','✔ تم');ok.onclick=function(){repDone(r.id)};w.appendChild(ok);
+    d.appendChild(w);c.appendChild(d);
+  });
+  box.appendChild(c);
+}
 function drawAdmin(){
   var box=$('admbox');box.innerHTML='';
   var top=el('div','row');top.appendChild(el('b','','🔐 لوحة الإدارة'));
@@ -398,6 +480,7 @@ function drawAdmin(){
   var pb=el('button','btn sm','حفظ السعر');pb.style.marginTop='8px';
   pb.onclick=async function(){var v=Number(pi.value);if(!(v>=0)){toast('اكتب رقم صحيح');return}var x=await SB.from('settings').upsert({key:'sub_price',value:String(v)});if(x.error){toast('تعذر الحفظ');return}PRICE=v;delete DR.price;toast('تم حفظ السعر ✅');drawAdmin()};
   pc.appendChild(pi);pc.appendChild(pb);box.appendChild(pc);
+  drawReports(box);
   var seg=el('div','seg');
   [['all','الكل'],['pending','قيد المراجعة'],['active','نشط'],['expired','منتهي'],['suspended','موقوف']].forEach(function(f){var b=el('button','chip'+(admFilter===f[0]?' on':''),f[1]);b.onclick=function(){admFilter=f[0];drawAdmin()};seg.appendChild(b)});
   box.appendChild(seg);
@@ -424,6 +507,7 @@ function drawAdmin(){
 var CFG={url:'https://gqneciyfwpwyjmyytggg.supabase.co',key:'sb_publishable_UxJwyk5J2ZEq5JmsCAMDdQ_r-_qnOHs'};
 var SB=null,UID=null,DB=null,canWrite=true,lastSig='';
 var ADMIN_WA='0940510551'; // رقم واتساب الإدارة للموافقة على المحلات
+var ADMIN_EMAIL='waintalgah@gmail.com';
 function loadJS(u){return new Promise(function(res){var e=document.createElement('script');e.src=u;e.onload=function(){res(true)};e.onerror=function(){res(false)};document.head.appendChild(e)})}
 async function ensureLib(){
   var L=['https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.57.4/dist/umd/supabase.js','https://unpkg.com/@supabase/supabase-js@2.57.4/dist/umd/supabase.js','https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js'];
@@ -434,14 +518,14 @@ function fail(){toast('تعذر الحفظ — حاول مرة ثانية')}
 function banner(t){$('bn').textContent=t}
 function vis(id){return !$(id).classList.contains('hide')}
 function refresh(){
-  var sg=REQ.length+'|'+OF.length+'|'+SHOPS.length+'|'+REQ.map(function(r){return r.Status}).join()+'|'+SHOPS.map(function(s){return s.approved+':'+s.paid_until+':'+s.address+':'+s.lat}).join()+'|'+OF.map(function(o){return o.id+':'+o.Price+':'+o.Notes}).join()+'|'+REQ.map(function(r){return r.ID}).join();
+  var sg=REQ.length+'|'+OF.length+'|'+SHOPS.length+'|'+REQ.map(function(r){return r.Status}).join()+'|'+SHOPS.map(function(s){return s.approved+':'+s.paid_until+':'+s.address+':'+s.lat}).join()+'|'+OF.map(function(o){return o.id+':'+o.Price+':'+o.Notes}).join()+'|'+REQ.map(function(r){return r.ID}).join()+'|'+REPORTS.map(function(r){return r.id+r.status}).join();
   if(sg===lastSig)return;if(busy('shop')||busy('admin')||busy('cust'))return;lastSig=sg;
   if(vis('cust')){if(vis('list'))drawList();else if(vis('res'))drawOffers()}
   if(vis('dir'))drawDir();if(vis('shop'))drawInbox();if(vis('admin')&&ADM)drawAdmin();
 }
 async function load(){
   if(!SB)return;
-  var q=await Promise.all([SB.from('requests').select('*').order('id',{ascending:false}).limit(200),SB.from('shops').select('*'),SB.from('offers').select('*'),SB.from('request_contacts').select('*'),SB.from('settings').select('*')]);
+  var q=await Promise.all([SB.from('requests').select('*').order('id',{ascending:false}).limit(200),SB.from('shops').select('*'),SB.from('offers').select('*'),SB.from('request_contacts').select('*'),SB.from('settings').select('*'),(ADM?SB.from('reports').select('*').order('id',{ascending:false}).limit(100):Promise.resolve({data:[]}))]);
   var nmz=['requests','shops','offers'],bad=[0,1,2].filter(function(i){return q[i].error});
   if(bad.length){
     var ex='';
@@ -450,6 +534,7 @@ async function load(){
       ex='\n[المشروع: '+CFG.url.split('//')[1].split('.')[0]+' · الدور: '+rl+']'}catch(e2){ex='\n[تعذر قراءة الجلسة]'}
     banner('⚠️ مشكلة في الاتصال — '+bad.map(function(i){return nmz[i]+': '+(q[i].error.message||q[i].error.code||'خطأ')}).join(' | ')+ex);return}
   (q[4].data||[]).forEach(function(x){if(x.key==='sub_price'&&Number(x.value)>=0)PRICE=Number(x.value)});
+  REPORTS=(q[5]&&q[5].data)||[];
   var ph={},nm={};(q[3].data||[]).forEach(function(x){ph[x.request_id]=x.phone});
   SHOPS.length=0;q[1].data.forEach(function(s){nm[s.id]=s.shop_name;SHOPS.push({id:s.id,ShopName:s.shop_name,Category:s.category,Phone:s.phone,City:s.city,owner:s.owner,approved:s.approved,paid_until:s.paid_until,lat:s.lat,lng:s.lng,address:s.address})});
   myShop=SHOPS.filter(function(s){return s.owner===UID})[0]||myShop;
@@ -502,9 +587,14 @@ async function connect(){
       try{localStorage.removeItem('wain-talqah-auth-2')}catch(x){}
       await connect();
     }
-    banner('✅ متصل');await load();setInterval(load,6000);await checkAdmin();route();window.addEventListener('hashchange',route);
+    banner('✅ متصل');await load();setInterval(load,6000);if(await checkAdmin())await load();route();window.addEventListener('hashchange',route);
   }catch(e){SB=null;banner('⚠️ تعذر الاتصال: '+((e&&e.message)||e))}
 })();
+$('fwa').href=waLink(ADMIN_WA,'السلام عليكم، لدي استفسار بخصوص تطبيق وين تلقاه');
+$('fem').href='mailto:'+ADMIN_EMAIL;$('fem').textContent='✉️ '+ADMIN_EMAIL;
+$('delreq').onclick=delOneRequest;
+(function(){var ag=false;try{ag=localStorage.getItem('wt-agree')==='1'}catch(e){}
+  ['agree1','agree2'].forEach(function(i){$(i).checked=ag;$(i).onchange=function(){try{localStorage.setItem('wt-agree',this.checked?'1':'0')}catch(e){}}})})();
 if('serviceWorker' in navigator)window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){})});
 </script>
 </body>
